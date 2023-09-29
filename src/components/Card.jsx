@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components'
 import video from "../assets/video1.webm";
@@ -7,10 +7,34 @@ import {BsCheck} from 'react-icons/bs'
 import {RiThumbUpFill,RiThumbDownFill} from 'react-icons/ri'
 import {AiOutlinePlus} from 'react-icons/ai'
 import {BiChevronDown} from 'react-icons/bi'
+import { onAuthStateChanged} from "firebase/auth";
+import { firebaseAuth } from "../utils/firebase-config";
+import axios from 'axios'
+import { useDispatch } from 'react-redux';
+import { removeFromLikedMovies } from '../store';
+
 
 const Card = ({moviedata,isLiked = false}) => {
+    const [email,setEmail] = useState(undefined);
     const [isHovered,setIsHovered] = useState(false);
+    const dispatch = useDispatch()
     const navigate = useNavigate();
+
+    useEffect(()=>{
+        onAuthStateChanged(firebaseAuth,(currentUser)=>{
+            if(currentUser)setEmail(currentUser.email);
+            else navigate('/login');
+        })
+    },[]);
+
+    const addToList = async ()=>{
+        try {
+            await axios.post("http://localhost:5000/api/user/add",{email,data:moviedata})
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
   return (
     <Container onMouseEnter={()=>setIsHovered(true)} onMouseLeave={()=>setIsHovered(false)}>
         <img src={`https://image.tmdb.org/t/p/w500${moviedata.image}`} alt="movie" />
@@ -30,9 +54,9 @@ const Card = ({moviedata,isLiked = false}) => {
                                 <RiThumbDownFill title='dislike'/>
                                 {
                                     isLiked ? (
-                                        <BsCheck title='remove from list'/>
+                                        <BsCheck title='remove from list' onClick={()=>dispatch(removeFromLikedMovies({movieId:moviedata.id,email}))}/>
                                     ):(
-                                        <AiOutlinePlus title='add to my list'/>
+                                        <AiOutlinePlus title='add to my list' onClick={addToList}/>
                                     )
                                 }
                             </div>
