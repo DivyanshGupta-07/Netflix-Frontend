@@ -29,7 +29,7 @@ const Card = ({moviedata,isLiked = false}) => {
 
     const addToList = async ()=>{
         try {
-            await axios.post("http://localhost:5000/api/user/add",{email,data:moviedata})
+            await axios.post("https://netflix-backend-xuep.vercel.app/api/user/add",{email,data:moviedata})
         } catch (error) {
             console.log(error)
         }
